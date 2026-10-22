@@ -1,0 +1,111 @@
+name: demo
+
+networks:
+  net-sucursal-a:
+    name: net-sucursal-a
+    driver_opts: {com.docker.network.bridge.enable_ip_masquerade: "false"}
+    ipam: {config: [{subnet: 10.10.1.0/24}]}
+  net-cloud:
+    name: net-cloud
+    driver_opts: {com.docker.network.bridge.enable_ip_masquerade: "false"}
+    ipam: {config: [{subnet: 10.20.2.0/24}]}
+  net-transit:
+    name: net-transit
+    driver_opts: {com.docker.network.bridge.enable_ip_masquerade: "false"}
+    ipam: {config: [{subnet: 10.100.0.0/24, gateway: 10.100.0.254}]}
+  net-ab:
+    name: net-ab
+    driver_opts: {com.docker.network.bridge.enable_ip_masquerade: "false"}
+    ipam: {config: [{subnet: 10.100.1.0/24, gateway: 10.100.1.254}]}
+
+x-router: &router
+  image: frrouting/frr:latest
+  cap_add: [NET_ADMIN, SYS_ADMIN]
+  sysctls:
+    - net.ipv4.ip_forward=1
+    - net.ipv4.conf.all.rp_filter=0
+    - net.ipv4.conf.default.rp_filter=0
+  restart: unless-stopped
+
+x-host: &host
+  image: tailscale/tailscale:latest   # Fijar una versión compatible antes de la demo.
+  cap_add: [NET_ADMIN]
+  devices: ["/dev/net/tun:/dev/net/tun"]
+  environment: ["TS_NO_LOGS_NO_SUPPORT=true"]
+  restart: unless-stopped
+
+services:
+  router-a:
+    <<: *router
+    container_name: router-a
+    hostname: router-a
+    volumes: ["./frr/router-a:/etc/frr"]
+    networks:
+      net-sucursal-a: {ipv4_address: 10.10.1.254}
+      net-transit:    {ipv4_address: 10.100.0.1}
+      net-ab:         {ipv4_address: 10.100.1.1}
+
+  router-b:
+    <<: *router
+    container_name: router-b
+    hostname: router-b
+    volumes: ["./frr/router-b:/etc/frr"]
+    networks:
+      net-cloud:   {ipv4_address: 10.20.2.254}
+      net-transit: {ipv4_address: 10.100.0.2}
+      net-ab:      {ipv4_address: 10.100.1.2}
+
+  router-c:
+    <<: *router
+    container_name: router-c
+    hostname: router-c
+    volumes: ["./frr/router-c:/etc/frr"]
+    networks:
+      net-transit: {ipv4_address: 10.100.0.3}
+
+  headscale:
+    image: headscale/headscale:latest
+    container_name: headscale
+    volumes: ["./headscale:/etc/headscale"]
+    command: serve
+    networks:
+      net-transit: {ipv4_address: 10.100.0.10}
+    restart: unless-stopped
+
+  # Headscale no trae shell: este sidecar comparte su netns y le agrega las rutas hacia los sitios.
+  hs-routes:
+    image: tailscale/tailscale:latest
+    container_name: hs-routes
+    network_mode: "service:headscale"
+    depends_on: [headscale]
+    cap_add: [NET_ADMIN]
+    entrypoint: ["sh","-c","ip route replace 10.10.1.0/24 via 10.100.0.1 && ip route replace 10.20.2.0/24 via 10.100.0.2 && exec sleep infinity"]
+    restart: unless-stopped
+
+  host-a1:
+    <<: *host
+    container_name: host-a1
+    hostname: host-a1
+    entrypoint: ["sh","-c","ip route replace default via 10.10.1.254 && exec tailscaled"]
+    networks: {net-sucursal-a: {ipv4_address: 10.10.1.10}}
+
+  host-a2:
+    <<: *host
+    container_name: host-a2
+    hostname: host-a2
+    entrypoint: ["sh","-c","ip route replace default via 10.10.1.254 && exec tailscaled"]
+    networks: {net-sucursal-a: {ipv4_address: 10.10.1.11}}
+
+  servidor-web:
+    <<: *host
+    container_name: servidor-web
+    hostname: servidor-web
+    entrypoint: ["sh","-c","ip route replace default via 10.20.2.254 && exec tailscaled"]
+    networks: {net-cloud: {ipv4_address: 10.20.2.10}}
+
+  servidor-db:
+    <<: *host
+    container_name: servidor-db
+    hostname: servidor-db
+    entrypoint: ["sh","-c","ip route replace default via 10.20.2.254 && exec tailscaled"]
+    networks: {net-cloud: {ipv4_address: 10.20.2.11}}

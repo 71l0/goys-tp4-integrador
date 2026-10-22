@@ -21,3 +21,13 @@ credentials*
 *.bak
 *.log
 *.rsc.bak
+
+# Headscale
+demo/headscale/db.sqlite
+demo/headscale/*.sqlite
+demo/headscale/*.sqlite-shm
+demo/headscale/*.sqlite-wal
+demo/headscale/private.key
+demo/headscale/noise_private.key
+demo/headscale/derp_server_private.key
+demo/headscale/data/
