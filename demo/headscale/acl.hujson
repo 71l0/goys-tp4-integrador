@@ -1,0 +1,23 @@
+// acl.hujson
+
+{
+  "groups": {
+    "group:tenant-a": ["tenant-a@"],
+    "group:tenant-b": ["tenant-b@"]
+  },
+  "tagOwners": {},
+  "acls": [
+    // Permitir tráfico entre nodos autenticados como miembros de tenant-a.
+    {
+      "action": "accept",
+      "src": ["group:tenant-a"],
+      "dst": ["group:tenant-a:*"]
+    },
+    // Permitir tráfico entre nodos autenticados como miembros de tenant-b.
+    {
+      "action": "accept",
+      "src": ["group:tenant-b"],
+      "dst": ["group:tenant-b:*"]
+    }
+  ]
+}

@@ -1,0 +1,55 @@
+# config.yaml de Headscale
+
+server_url: http://10.100.0.10:8080
+listen_addr: 0.0.0.0:8080
+metrics_listen_addr: 0.0.0.0:9090
+
+grpc_listen_addr: 0.0.0.0:50443
+grpc_allow_insecure: true
+
+noise:
+  private_key_path: /etc/headscale/noise_private.key
+
+# REQUISITO OBLIGATORIO: Prefijo IP para los clientes de la red mesh
+prefixes:
+  v4: 100.64.0.0/10
+  allocation: sequential
+
+derp:
+  server:
+    enabled: true
+    region_id: 999
+    region_code: "lab"
+    region_name: "Lab DERP"
+    stun_listen_addr: "0.0.0.0:3478"
+    private_key_path: /etc/headscale/derp_server_private.key
+    automatically_add_embedded_derp_region: true
+    ipv4: 10.100.0.10
+  urls: []
+  paths: []
+  auto_update_enabled: false
+
+disable_check_updates: true
+
+node:
+  ephemeral:
+    inactivity_timeout: 30m
+
+database:
+  type: sqlite3
+  sqlite:
+    path: /etc/headscale/db.sqlite
+
+dns:
+  magic_dns: false
+  base_domain: example.com
+  nameservers:
+    global:
+      - 1.1.1.1
+    split: {}
+  search_domains: []
+  extra_records: []
+
+policy:
+  mode: file
+  path: /etc/headscale/acl.hujson
