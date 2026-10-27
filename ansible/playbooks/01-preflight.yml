@@ -1,0 +1,52 @@
+---
+- name: Verificar el entorno del laboratorio
+  hosts: controlador
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - ../vars/lab.yml
+
+  vars:
+    repo_root: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: Validar la configuración de Docker Compose
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - config
+          - --quiet
+        chdir: "{{ repo_root }}"
+      changed_when: false
+
+    - name: Consultar los servicios activos
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - ps
+          - --services
+          - --status
+          - running
+        chdir: "{{ repo_root }}"
+      register: compose_running
+      changed_when: false
+
+    - name: Mostrar los servicios activos
+      ansible.builtin.debug:
+        var: compose_running.stdout_lines
+
+    - name: Verificar los servicios esperados
+      ansible.builtin.assert:
+        that:
+          - (expected_services | difference(compose_running.stdout_lines)) | length == 0
+        fail_msg: >-
+          Faltan servicios activos:
+          {{ expected_services | difference(compose_running.stdout_lines) }}
+        success_msg: "Todos los servicios esperados están activos."

@@ -1,0 +1,33 @@
+
+PLAY [Verificar el entorno del laboratorio] ************************************
+
+TASK [Validar la configuración de Docker Compose] ******************************
+ok: [controlador]
+
+TASK [Consultar los servicios activos] *****************************************
+ok: [controlador]
+
+TASK [Mostrar los servicios activos] *******************************************
+ok: [controlador] => {
+    "compose_running.stdout_lines": [
+        "headscale",
+        "host-a1",
+        "host-a2",
+        "hs-routes",
+        "router-a",
+        "router-b",
+        "router-c",
+        "servidor-db",
+        "servidor-web"
+    ]
+}
+
+TASK [Verificar los servicios esperados] ***************************************
+ok: [controlador] => {
+    "changed": false,
+    "msg": "Todos los servicios esperados están activos."
+}
+
+PLAY RECAP *********************************************************************
+controlador                : ok=4    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+
