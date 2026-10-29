@@ -1,0 +1,58 @@
+
+---
+- name: Verificar Headscale y los clientes Tailscale
+  hosts: controlador
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - ../vars/lab.yml
+
+  vars:
+    repo_root: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: Consultar los nodos registrados en Headscale
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - headscale
+          - headscale
+          - nodes
+          - list
+        chdir: "{{ repo_root }}"
+      register: headscale_nodes
+      changed_when: false
+
+    - name: Mostrar los nodos registrados
+      ansible.builtin.debug:
+        var: headscale_nodes.stdout_lines
+
+    - name: Consultar el estado de los clientes Tailscale
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ item }}"
+          - tailscale
+          - status
+        chdir: "{{ repo_root }}"
+      loop: "{{ overlay_nodes }}"
+      register: tailscale_results
+      changed_when: false
+
+    - name: Mostrar el estado de cada cliente
+      ansible.builtin.debug:
+        msg: |
+          Cliente: {{ item.item }}
+          {{ item.stdout }}
+      loop: "{{ tailscale_results.results }}"

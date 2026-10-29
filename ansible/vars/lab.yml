@@ -1,0 +1,24 @@
+---
+compose_file: demo/docker-compose.yml
+
+expected_services:
+  - router-a
+  - router-b
+  - router-c
+  - headscale
+  - hs-routes
+  - host-a1
+  - host-a2
+  - servidor-web
+  - servidor-db
+
+routers:
+  - router-a
+  - router-b
+  - router-c
+
+overlay_nodes:
+  - host-a1
+  - host-a2
+  - servidor-web
+  - servidor-db

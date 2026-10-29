@@ -1,0 +1,150 @@
+
+---
+- name: Validar conectividad e aislamiento entre tenants
+  hosts: controlador
+  gather_facts: false
+
+  vars_files:
+    - ../vars/lab.yml
+
+  vars:
+    repo_root: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: "4.1 - Verificar conectividad dentro de tenant-a"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - host-a1
+          - tailscale
+          - ping
+          - --timeout=5s
+          - 100.64.0.2
+        chdir: "{{ repo_root }}"
+      register: ping_tenant_a
+      changed_when: false
+      failed_when: false
+
+    - name: "Validar resultado positivo de tenant-a"
+      ansible.builtin.assert:
+        that:
+          - ping_tenant_a.rc == 0
+          - "'pong from' in (ping_tenant_a.stdout | lower)"
+        fail_msg: >-
+          FALLÓ la conectividad dentro de tenant-a.
+          Revisar stdout y stderr de la prueba.
+        success_msg: >-
+          OK: host-a1 recibe respuesta de host-a2.
+
+    - name: "4.2 - Verificar conectividad dentro de tenant-b"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - servidor-web
+          - tailscale
+          - ping
+          - --timeout=5s
+          - 100.64.0.3
+        chdir: "{{ repo_root }}"
+      register: ping_tenant_b
+      changed_when: false
+      failed_when: false
+
+    - name: "Validar resultado positivo de tenant-b"
+      ansible.builtin.assert:
+        that:
+          - ping_tenant_b.rc == 0
+          - "'pong from' in (ping_tenant_b.stdout | lower)"
+        fail_msg: >-
+          FALLÓ la conectividad dentro de tenant-b.
+          Revisar stdout y stderr de la prueba.
+        success_msg: >-
+          OK: servidor-web recibe respuesta de servidor-db.
+
+    - name: "4.3 - Verificar aislamiento desde tenant-a hacia tenant-b"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - host-a1
+          - tailscale
+          - ping
+          - --timeout=5s
+          - 100.64.0.4
+        chdir: "{{ repo_root }}"
+      register: cross_a_to_b
+      changed_when: false
+      failed_when: false
+
+    - name: "Validar evidencia de aislamiento A hacia B"
+      ansible.builtin.assert:
+        that:
+          - >-
+            'no matching peer' in
+            ((cross_a_to_b.stdout ~ ' ' ~ cross_a_to_b.stderr) | lower)
+        fail_msg: >-
+          NO se confirmó el aislamiento A hacia B.
+          Se esperaba el mensaje 'no matching peer'.
+          Un timeout u otro error no se considera suficiente.
+        success_msg: >-
+          OK: el cliente de tenant-a no encuentra un peer
+          de tenant-b, conforme al resultado esperado.
+
+    - name: "4.4 - Verificar aislamiento desde tenant-b hacia tenant-a"
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - servidor-web
+          - tailscale
+          - ping
+          - --timeout=5s
+          - 100.64.0.1
+        chdir: "{{ repo_root }}"
+      register: cross_b_to_a
+      changed_when: false
+      failed_when: false
+
+    - name: "Validar evidencia de aislamiento B hacia A"
+      ansible.builtin.assert:
+        that:
+          - >-
+            'no matching peer' in
+            ((cross_b_to_a.stdout ~ ' ' ~ cross_b_to_a.stderr) | lower)
+        fail_msg: >-
+          NO se confirmó el aislamiento B hacia A.
+          Se esperaba el mensaje 'no matching peer'.
+          Un timeout u otro error no se considera suficiente.
+        success_msg: >-
+          OK: el cliente de tenant-b no encuentra un peer
+          de tenant-a, conforme al resultado esperado.
+
+    - name: "Mostrar resumen de las cuatro pruebas"
+      ansible.builtin.debug:
+        msg:
+          - "tenant-a: {{ ping_tenant_a.stdout | default('') }}"
+          - "tenant-b: {{ ping_tenant_b.stdout | default('') }}"
+          - >-
+            tenant-a hacia tenant-b:
+            {{ (cross_a_to_b.stdout ~ ' ' ~ cross_a_to_b.stderr) | trim }}
+          - >-
+            tenant-b hacia tenant-a:
+            {{ (cross_b_to_a.stdout ~ ' ' ~ cross_b_to_a.stderr) | trim }}

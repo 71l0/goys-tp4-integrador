@@ -1,0 +1,52 @@
+
+PLAY [Validar conectividad e aislamiento entre tenants] ************************
+
+TASK [4.1 - Verificar conectividad dentro de tenant-a] *************************
+ok: [controlador]
+
+TASK [Validar resultado positivo de tenant-a] **********************************
+ok: [controlador] => {
+    "changed": false,
+    "msg": "OK: host-a1 recibe respuesta de host-a2."
+}
+
+TASK [4.2 - Verificar conectividad dentro de tenant-b] *************************
+ok: [controlador]
+
+TASK [Validar resultado positivo de tenant-b] **********************************
+ok: [controlador] => {
+    "changed": false,
+    "msg": "OK: servidor-web recibe respuesta de servidor-db."
+}
+
+TASK [4.3 - Verificar aislamiento desde tenant-a hacia tenant-b] ***************
+ok: [controlador]
+
+TASK [Validar evidencia de aislamiento A hacia B] ******************************
+ok: [controlador] => {
+    "changed": false,
+    "msg": "OK: el cliente de tenant-a no encuentra un peer de tenant-b, conforme al resultado esperado."
+}
+
+TASK [4.4 - Verificar aislamiento desde tenant-b hacia tenant-a] ***************
+ok: [controlador]
+
+TASK [Validar evidencia de aislamiento B hacia A] ******************************
+ok: [controlador] => {
+    "changed": false,
+    "msg": "OK: el cliente de tenant-b no encuentra un peer de tenant-a, conforme al resultado esperado."
+}
+
+TASK [Mostrar resumen de las cuatro pruebas] ***********************************
+ok: [controlador] => {
+    "msg": [
+        "tenant-a: pong from host-a2 (100.64.0.2) via 10.10.1.11:49150 in 0s",
+        "tenant-b: pong from servidor-db (100.64.0.3) via 10.20.2.11:50763 in 1ms",
+        "tenant-a hacia tenant-b: no matching peer",
+        "tenant-b hacia tenant-a: no matching peer"
+    ]
+}
+
+PLAY RECAP *********************************************************************
+controlador                : ok=9    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+

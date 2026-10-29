@@ -1,0 +1,63 @@
+
+---
+- name: Verificar el underlay L3 y BGP
+  hosts: controlador
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - ../vars/lab.yml
+
+  vars:
+    repo_root: "{{ playbook_dir }}/../.."
+
+  tasks:
+    - name: Consultar el resumen BGP de cada router
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ item }}"
+          - vtysh
+          - -c
+          - show bgp summary
+        chdir: "{{ repo_root }}"
+      loop: "{{ routers }}"
+      register: bgp_results
+      changed_when: false
+
+    - name: Mostrar el resumen BGP
+      ansible.builtin.debug:
+        msg: |
+          Router: {{ item.item }}
+          {{ item.stdout }}
+      loop: "{{ bgp_results.results }}"
+
+    - name: Consultar las rutas IP de cada router
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ item }}"
+          - vtysh
+          - -c
+          - show ip route
+        chdir: "{{ repo_root }}"
+      loop: "{{ routers }}"
+      register: route_results
+      changed_when: false
+
+    - name: Mostrar las tablas de rutas
+      ansible.builtin.debug:
+        msg: |
+          Router: {{ item.item }}
+          {{ item.stdout }}
+      loop: "{{ route_results.results }}"
