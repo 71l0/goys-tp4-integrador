@@ -36,6 +36,7 @@ Simular la interconexión de sucursales o centros de cómputo mediante una red s
 
 ### 2. Topología
 
+```
 ===================================================================================================
                                   CAPA OVERLAY (WireGuard Mesh)
     [host-a1] <====== Túnel Cifrado WireGuard (100.64.0.0/10) ======> [servidor-web]
@@ -72,6 +73,7 @@ Simular la interconexión de sucursales o centros de cómputo mediante una red s
 |  - servidor-db  (10.20.2.11, Tenant-B)    |
 +-------------------------------------------+
 ===================================================================================================
+```
 
 #### 2.1 Nodos del laboratorio
 
