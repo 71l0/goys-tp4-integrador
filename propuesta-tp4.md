@@ -198,6 +198,21 @@ Caminos de `host-a1` (sucursal A) hacia `servidor-web` (sucursal B):
 | Normal | `host-a1` → `router-a` → **net-ab** → `router-b` → `servidor-web` | 2 saltos de router |
 | Caída de `net-ab` | `host-a1` → `router-a` → `router-c` → `router-b` → `servidor-web` | 3 saltos de router (failover BGP) |
 
+#### 2.9 Monitoreo y observabilidad (Prometheus + Grafana)
+
+| Componente | IP (`net-transit`) | Acceso desde el host | Función |
+|---|---|---|---|
+| `frr-exporter-a/b/c` | `10.100.0.31` / `.32` / `.33` (`:9342`) | — | `frr_exporter` por router; lee los sockets de FRR por un volumen compartido (`frr-run-{a,b,c}`) y expone métricas BGP |
+| `prometheus` | `10.100.0.20` | `http://localhost:9091` | Scraping cada 5 s de los 3 exporters FRR y de Headscale (`10.100.0.10:9090`); reglas de alerta |
+| `grafana` | `10.100.0.21` | `http://localhost:3000` (`admin`/`admin`) | Datasource y dashboard **Lab Mesh VPN** provisionados automáticamente |
+
+Archivos: `demo/prometheus/prometheus.yml`, `demo/prometheus/alerts.yml`, `demo/grafana/provisioning/` y `demo/grafana/dashboards/lab-mesh.json`.
+
+- **Dashboard:** estado de las sesiones BGP (actual y en el tiempo, para ver el failover), prefijos recibidos, uptime, tasa de mensajes BGP, estado de los targets y goroutines de Headscale.
+- **Alertas:** `BGPPeerCaido` (`frr_bgp_peer_state == 0` por 5 s) y `ExporterCaido` (`up == 0` por 15 s).
+- **Validado:** al cortar `net-ab`, las sesiones directas `router-a ↔ router-b` pasan a 0 en Prometheus, `BGPPeerCaido` pasa a `firing`, `router-a` reconverge por `net-transit` y al restaurar el enlace las 6 sesiones vuelven a 1.
+- El monitoreo vive en `net-transit` y no modifica la topología del underlay.
+
 ---
 
 ### 3. Cobertura de las 3 Áreas de la Materia
@@ -205,10 +220,10 @@ Caminos de `host-a1` (sucursal A) hacia `servidor-web` (sucursal B):
 | Área | Qué cubre en este TP | Estado |
 |---|---|---|
 | 🔌 **Redes** | Topología L3 underlay con BGP entre 3 AS, failover de enlaces, redes Docker segmentadas (L3, sin NAT), containerizacion de routers | **Implementado** |
-| ⚙️ **Operación (Gestión)** | Despliegue reproducible con Docker Compose, aprovisionamiento de agentes Tailscale, inyeccion de rutas en el plano de control, logs de FRR centralizados | **Implementado (basico)** |
+| ⚙️ **Operación (Gestión)** | Despliegue reproducible con Docker Compose, aprovisionamiento de agentes Tailscale, inyeccion de rutas en el plano de control, logs de FRR centralizados | **Implementado** (monitoreo con Prometheus + Grafana, ver §2.9) |
 | 🛡️ **Seguridad** | Control de acceso centralizado (ACLs de Headscale), aislamiento estricto entre `tenant-a` y `tenant-b`, cifrado WireGuard punto a punto | **Implementado** |
 
-**Alcance real vs. alcance máximo de la materia.** El TP4 pide integrar las tres áreas, no implementarlas todas por completo. Lo que hoy esta implementado cobre Redes, Seguridad y la base de Operación. Quedan pendientes dos herramientas de operación que refuerzan la demo (ver §6).
+**Alcance real vs. alcance máximo de la materia.** El TP4 pide integrar las tres áreas, no implementarlas todas por completo. Lo que hoy esta implementado cobre Redes, Seguridad y la base de Operación. El monitoreo con Prometheus + Grafana ya está implementado (§2.9); los ítems que siguen pendientes están en §6.
 
 ---
 
@@ -266,7 +281,6 @@ Estos ítems **no están implementados** en el laboratorio actual; se documentan
 | # | Ítem | Área | Descripción |
 |---|---|---|---|
 | 1 | **Aprovisionamiento con Ansible** | Operación | Playbooks para crear tenants, registrar usuarios, entregar las *auth keys* a los agentes y aplicar la `acl.hujson` de forma declarativa e idempotente, en lugar de los pasos manuales de Headscale CLI. |
-| 2 | **Observabilidad con Prometheus + Grafana** | Operación | Scraping de las métricas de Headscale (`0.0.0.0:9090`) y de los routers FRR, con dashboards de latencia, throughput, pérdida de paquetes y estado de las sesiones BGP. |
 | 3 | **OSPF como alternativa a BGP** | Redes | Agregar OSPF como segundo protocolo de ruta para comparar convergence times y comportamiento de failover frente a eBGP. |
 | 4 | **Pruebas automatizadas de aceptación** | Operación / Redes | Script que valide el failover (caída y restauración de `net-ab`) y el aislamiento multi-tenant de forma automática en cada entrega. |
 | 5 | **Documento final y póster A1** | General | Documento PDF con la memoria del TP y póster tamaño A1 para la presentación de la Feria de Redes. |
@@ -304,7 +318,7 @@ docker exec host-a1 ping -c2 host-a2
 - El **failover es real**, no simulado: depende de las sesiones eBGP entre los tres AS con timers cortos (`timers 3 9`).
 - La **segmentación multi-tenant** no depende de la topología física sino de la política centralizada en `acl.hujson`.
 - El sidecar `hs-routes` es una pieza obligatoria del diseño: sin él, Headscale no tiene rutas hacia las sucursales y los agentes no pueden registrarse.
-- Los ítems de §6 (Ansible, Grafana, OSPF, pruebas automatizadas, PDF/póster) quedan pendientes y **no deben presentarse como implementados**.
+- Los ítems de §6 (Ansible, OSPF, pruebas automatizadas, PDF/póster) quedan pendientes y **no deben presentarse como implementados**.
 
 ---
 
