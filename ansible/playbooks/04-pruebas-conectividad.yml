@@ -1,4 +1,8 @@
 ---
+# NOTA: Las IPs Tailscale .1 a .4 se asumen asignadas en orden secuencial
+# tras una limpieza total de Headscale (db.sqlite borrada y contenedores
+# recreados con `docker compose down -v`). Si el orden de join de los nodos
+# cambia, actualizar estas IPs antes de ejecutar el playbook.
 - name: Validar conectividad e aislamiento entre tenants
   hosts: controlador
   gather_facts: false
@@ -16,6 +20,27 @@
           - sleep
           - "5"
       changed_when: false
+
+    - name: Diagnóstico - mostrar estado Tailscale de cada nodo overlay
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ item }}"
+          - tailscale
+          - status
+        chdir: "{{ repo_root }}"
+      loop: "{{ overlay_nodes }}"
+      register: tailscale_status_diag
+      changed_when: false
+
+    - name: Mostrar diagnóstico Tailscale
+      ansible.builtin.debug:
+        var: tailscale_status_diag.results
 
     - name: "4.1 - Verificar conectividad dentro de tenant-a"
       ansible.builtin.command:

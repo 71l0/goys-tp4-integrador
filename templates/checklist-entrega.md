@@ -20,7 +20,7 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 ## 🖼️ Póster
 
 - [ ] Formato A1 (vertical u horizontal, según se defina)
-- [ | Está diseñado para ser autocontenido (se entiende sin explicación oral)
+- [ ] Está diseñado para ser autocontenido (se entiende sin explicación oral)
 - [ ] Incluye: título del proyecto, grupo, objetivos, metodología, resultados principales, conclusiones
 - [ ] Tiene al menos un diagrama o imagen representativa
 - [ ] Letra legible desde al menos 1 metro de distancia
@@ -45,14 +45,14 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 - [ ] Capturas de pantalla o evidencias incluidas
 - [ ] Póster en formato editable + PDF
 - [ ] Documento en PDF
-- [ | No hay archivos temporales, binarios o contraseñas hardcodeadas
+- [ ] No hay archivos temporales, binarios o contraseñas hardcodeadas
 
 ## 👥 Presentación grupal
 
 - [ ] Roles definidos: quién explica el póster, quién maneja la demo, quién responde preguntas técnicas
 - [ ] Presentación ensayada al menos 1 vez con cronómetro
 - [ ] Saben explicar el proyecto en 30 segundos (elevator pitch)
-- [ | Preparados para preguntas del docente: decisiones técnicas, alternativas, qué harían diferente
+- [ ] Preparados para preguntas del docente: decisiones técnicas, alternativas, qué harían diferente
 - [ ] Tienen una respuesta para "¿cómo se vincula esto con seguridad?"
 
 ## 🎒 Logística — día de la feria
