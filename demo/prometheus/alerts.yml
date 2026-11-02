@@ -1,0 +1,15 @@
+groups:
+  - name: underlay
+    rules:
+      - alert: BGPPeerCaido
+        expr: frr_bgp_peer_state == 0
+        for: 5s
+        labels: {severity: critical}
+        annotations:
+          summary: "Sesión BGP caída en {{ $labels.router }} hacia {{ $labels.peer }}"
+      - alert: ExporterCaido
+        expr: up == 0
+        for: 15s
+        labels: {severity: warning}
+        annotations:
+          summary: "Target {{ $labels.job }} {{ $labels.instance }} no responde"

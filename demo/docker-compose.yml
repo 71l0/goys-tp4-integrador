@@ -18,6 +18,13 @@ networks:
     driver_opts: {com.docker.network.bridge.enable_ip_masquerade: "false"}
     ipam: {config: [{subnet: 10.100.1.0/24, gateway: 10.100.1.254}]}
 
+volumes:
+  frr-run-a:
+  frr-run-b:
+  frr-run-c:
+  prometheus-data:
+  grafana-data:
+
 x-router: &router
   image: frrouting/frr:latest
   cap_add: [NET_ADMIN, SYS_ADMIN]
@@ -39,7 +46,7 @@ services:
     <<: *router
     container_name: router-a
     hostname: router-a
-    volumes: ["./frr/router-a:/etc/frr"]
+    volumes: ["./frr/router-a:/etc/frr", "frr-run-a:/var/run/frr"]
     networks:
       net-sucursal-a: {ipv4_address: 10.10.1.254}
       net-transit:    {ipv4_address: 10.100.0.1}
@@ -49,7 +56,7 @@ services:
     <<: *router
     container_name: router-b
     hostname: router-b
-    volumes: ["./frr/router-b:/etc/frr"]
+    volumes: ["./frr/router-b:/etc/frr", "frr-run-b:/var/run/frr"]
     networks:
       net-cloud:   {ipv4_address: 10.20.2.254}
       net-transit: {ipv4_address: 10.100.0.2}
@@ -59,7 +66,7 @@ services:
     <<: *router
     container_name: router-c
     hostname: router-c
-    volumes: ["./frr/router-c:/etc/frr"]
+    volumes: ["./frr/router-c:/etc/frr", "frr-run-c:/var/run/frr"]
     networks:
       net-transit: {ipv4_address: 10.100.0.3}
 
@@ -109,3 +116,57 @@ services:
     hostname: servidor-db
     entrypoint: ["sh","-c","ip route replace default via 10.20.2.254 && exec tailscaled"]
     networks: {net-cloud: {ipv4_address: 10.20.2.11}}
+
+  # ---------- Monitoreo y observabilidad ----------
+  # Cada exporter lee los sockets de su router (volumen compartido) y expone métricas BGP en :9342.
+  frr-exporter-a: &frr-exporter
+    image: tynany/frr_exporter:latest
+    container_name: frr-exporter-a
+    user: root
+    volumes: ["frr-run-a:/var/run/frr:ro"]
+    command: ["--frr.socket.dir-path=/var/run/frr"]
+    depends_on: [router-a]
+    networks: {net-transit: {ipv4_address: 10.100.0.31}}
+    restart: unless-stopped
+
+  frr-exporter-b:
+    <<: *frr-exporter
+    container_name: frr-exporter-b
+    volumes: ["frr-run-b:/var/run/frr:ro"]
+    depends_on: [router-b]
+    networks: {net-transit: {ipv4_address: 10.100.0.32}}
+
+  frr-exporter-c:
+    <<: *frr-exporter
+    container_name: frr-exporter-c
+    volumes: ["frr-run-c:/var/run/frr:ro"]
+    depends_on: [router-c]
+    networks: {net-transit: {ipv4_address: 10.100.0.33}}
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+      - prometheus-data:/prometheus
+    ports: ["9091:9090"]
+    networks: {net-transit: {ipv4_address: 10.100.0.20}}
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_ANALYTICS_REPORTING_ENABLED: "false"
+      GF_ANALYTICS_CHECK_FOR_UPDATES: "false"
+    volumes:
+      - ./grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+      - grafana-data:/var/lib/grafana
+    ports: ["3000:3000"]
+    depends_on: [prometheus]
+    networks: {net-transit: {ipv4_address: 10.100.0.21}}
+    restart: unless-stopped
