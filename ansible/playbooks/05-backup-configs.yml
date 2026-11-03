@@ -1,0 +1,56 @@
+---
+- name: Respaldo de configuraciones de routers FRR
+  hosts: controlador
+  connection: local
+  gather_facts: false
+
+  vars_files:
+    - ../vars/lab.yml
+
+  vars:
+    repo_root: "{{ playbook_dir }}/../.."
+    backup_dir: "{{ repo_root }}/backups/frr"
+    backup_date: "{{ lookup('pipe', 'date +%Y-%m-%d') }}"
+
+  tasks:
+    - name: Crear directorio para backups de FRR si no existe
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+        mode: '0755'
+
+    - name: Extraer la configuración activa (running-config) de cada router FRR
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ item }}"
+          - vtysh
+          - -c
+          - show running-config
+      chdir: "{{ repo_root }}"
+      loop: "{{ routers }}"
+      register: frr_configs
+      changed_when: false
+
+    - name: Guardar la configuración en archivo de respaldo versionado
+      ansible.builtin.copy:
+        content: "{{ item.stdout }}"
+        dest: "{{ backup_dir }}/{{ item.item }}-{{ backup_date }}.cfg"
+        mode: '0644'
+      loop: "{{ frr_configs.results }}"
+
+    - name: Validar que el archivo de respaldo contiene bloques de configuración esperados
+      ansible.builtin.assert:
+        that:
+          - "'router bgp' in item.stdout"
+          - "'neighbor' in item.stdout"
+        fail_msg: >-
+          El respaldo de {{ item.item }} no contiene la configuración BGP esperada.
+        success_msg: >-
+          OK: Respaldo generado y validado para {{ item.item }} en {{ backup_dir }}/{{ item.item }}-{{ backup_date }}.cfg.
+      loop: "{{ frr_configs.results }}"
