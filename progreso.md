@@ -35,6 +35,8 @@
 | 2026-11-02 | Reacomoda IPs de nodos para ejecutar correctamente el playbook 4 de Ansible | Ulises Bucchino | refactor(ansible): reacomoda IPs de nodos para ejecutar correctamente el playbook 4 de Ansible. |
 | 2026-11-02 | Reacomoda IPs de nodos para ejecutar correctamente el playbook 4 de Ansible | Ulises Mateo Bucchino | refactor(ansible): reacomoda IPs de nodos para ejecutar correctamente el playbook 4 de Ansible. |
 | 2026-11-02 | Implementa monitoreo con Prometheus y Grafana | Ulises Mateo Bucchino | feat(ops): implementa monitoreo con Prometheus y Grafana. |
+| 2026-11-03 | Playbook para respaldo versionado de configuraciones de FRR | Valentín Garzaniti | feat(ansible): agrega playbook para respaldo versionado de configuraciones de FRR |
+| 2026-11-03 | Runbook de procedimientos operativos, failover y recuperación | Valentín Garzaniti | docs(ops): agrega runbook con procedimientos operativos, failover y recuperacion |
 
 ## Estado de servicios (demo/)
 
@@ -42,8 +44,9 @@
 |----------|--------|-------|
 | Underlay FRR (router-a/b/c) | Implementado | 3 AS (65001, 65002, 65000), eBGP, failover por caída de net-ab |
 | Overlay Headscale | Implementado | 4 nodos, DERP embebido, ACL intra-tenant |
-| Ansible | Implementado | 4 playbooks: preflight, underlay, overlay, conectividad |
+| Ansible | Implementado | 5 playbooks: preflight, underlay, overlay, conectividad, respaldo |
 | Prometheus + Grafana | Implementado | frr_exporter, alertas BGP, dashboard lab-mesh |
+| Documentación Operativa | Implementado | Runbook de gestión, failover y contingencia (`documento/runbook.md`) |
 
 ## 🚧 Pendientes / decisiones
 
