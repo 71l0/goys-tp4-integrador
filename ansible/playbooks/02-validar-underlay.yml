@@ -61,3 +61,37 @@
           Router: {{ item.item }}
           {{ item.stdout }}
       loop: "{{ route_results.results }}"
+
+    - name: Assert sesiones BGP establecidas
+      ansible.builtin.assert:
+        that:
+          - "'Established' in item.stdout"
+          - "'Active' not in item.stdout"
+        fail_msg: >-
+          BGP no Established en {{ item.item }}.
+          Revisar 'show bgp summary'.
+        success_msg: >-
+          OK: BGP Established en {{ item.item }}.
+      loop: "{{ bgp_results.results }}"
+
+    - name: Assert router-a tiene ruta a 10.20.2.0/24
+      ansible.builtin.assert:
+        that:
+          - "'10.20.2.0/24' in item.stdout"
+        when: item.item == 'router-a'
+        fail_msg: >-
+          router-a no tiene ruta a 10.20.2.0/24 (sucursal B).
+        success_msg: >-
+          OK: router-a ruta hacia 10.20.2.0/24.
+      loop: "{{ route_results.results }}"
+
+    - name: Assert router-b tiene ruta a 10.10.1.0/24
+      ansible.builtin.assert:
+        that:
+          - "'10.10.1.0/24' in item.stdout"
+        when: item.item == 'router-b'
+        fail_msg: >-
+          router-b no tiene ruta a 10.10.1.0/24 (sucursal A).
+        success_msg: >-
+          OK: router-b ruta hacia 10.10.1.0/24.
+      loop: "{{ route_results.results }}"
