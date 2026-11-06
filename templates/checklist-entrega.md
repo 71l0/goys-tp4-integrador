@@ -19,13 +19,13 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 
 ## 🖼️ Póster
 
-- [ ] Formato A1 (vertical u horizontal, según se defina)
-- [ | Está diseñado para ser autocontenido (se entiende sin explicación oral)
-- [ ] Incluye: título del proyecto, grupo, objetivos, metodología, resultados principales, conclusiones
-- [ ] Tiene al menos un diagrama o imagen representativa
-- [ ] Letra legible desde al menos 1 metro de distancia
-- [ ] Usa colores y contraste adecuados (no texto claro sobre fondo claro)
-- [ ] Está subido al repositorio en formato editable + PDF
+- [x] Formato A1 (vertical u horizontal, según se defina)
+- [x| Está diseñado para ser autocontenido (se entiende sin explicación oral)
+- [x] Incluye: título del proyecto, grupo, objetivos, metodología, resultados principales, conclusiones
+- [x] Tiene al menos un diagrama o imagen representativa
+- [x] Letra legible desde al menos 1 metro de distancia
+- [x] Usa colores y contraste adecuados (no texto claro sobre fondo claro)
+- [x] Está subido al repositorio en formato editable + PDF
 - [ ] Opcional: versión impresa lista para la feria
 
 ## 💻 Demo / Estación interactiva
