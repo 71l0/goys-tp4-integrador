@@ -6,26 +6,26 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 
 ## 📄 Documento
 
-- [ ] Tiene carátula con datos del grupo (nombre, integrantes, modalidad, fecha)
-- [ ] Sigue la estructura de la modalidad elegida (A, B o C)
-- [ ] Extensión correcta: 5-7 págs. (modalidades A y B) o 6-8 págs. (modalidad C)
-- [ ] Incluye al menos un diagrama o tabla según corresponda
-- [ ] Las imágenes tienen leyenda y son legibles
-- [ ] Tiene referencias bibliográficas (mínimo 6 para modalidad B)
-- [ ] Formato de referencias consistente (APA, IEEE o ACM)
-- [ ] Formato de entrega: PDF
-- [ ] Alguien más que el autor lo leyó (no tiene errores de tipeo ni ortografía)
-- [ ] Está subido al repositorio del grupo
+- [x] Tiene carátula con datos del grupo (nombre, integrantes, modalidad, fecha)
+- [x] Sigue la estructura de la modalidad elegida (A, B o C)
+- [x] Extensión correcta: 5-7 págs. (modalidades A y B) o 6-8 págs. (modalidad C)
+- [x] Incluye al menos un diagrama o tabla según corresponda
+- [x] Las imágenes tienen leyenda y son legibles
+- [x] Tiene referencias bibliográficas (mínimo 6 para modalidad B)
+- [x] Formato de referencias consistente (APA, IEEE o ACM)
+- [x] Formato de entrega: PDF
+- [x] Alguien más que el autor lo leyó (no tiene errores de tipeo ni ortografía)
+- [x] Está subido al repositorio del grupo
 
 ## 🖼️ Póster
 
-- [ ] Formato A1 (vertical u horizontal, según se defina)
-- [ ] Está diseñado para ser autocontenido (se entiende sin explicación oral)
-- [ ] Incluye: título del proyecto, grupo, objetivos, metodología, resultados principales, conclusiones
-- [ ] Tiene al menos un diagrama o imagen representativa
-- [ ] Letra legible desde al menos 1 metro de distancia
-- [ ] Usa colores y contraste adecuados (no texto claro sobre fondo claro)
-- [ ] Está subido al repositorio en formato editable + PDF
+- [x] Formato A1 (vertical u horizontal, según se defina)
+- [x| Está diseñado para ser autocontenido (se entiende sin explicación oral)
+- [x] Incluye: título del proyecto, grupo, objetivos, metodología, resultados principales, conclusiones
+- [x] Tiene al menos un diagrama o imagen representativa
+- [x] Letra legible desde al menos 1 metro de distancia
+- [x] Usa colores y contraste adecuados (no texto claro sobre fondo claro)
+- [x] Está subido al repositorio en formato editable + PDF
 - [ ] Opcional: versión impresa lista para la feria
 
 ## 💻 Demo / Estación interactiva
@@ -40,12 +40,12 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 ## 📂 Repositorio
 
 - [ ] README.md completo: qué es el proyecto, cómo reproducirlo, tecnologías usadas
-- [ ] Commits de todos los integrantes (no commits de una sola persona)
-- [ ] Código, scripts y configuraciones funcionando y documentados
-- [ ] Capturas de pantalla o evidencias incluidas
-- [ ] Póster en formato editable + PDF
-- [ ] Documento en PDF
-- [ ] No hay archivos temporales, binarios o contraseñas hardcodeadas
+- [x] Commits de todos los integrantes (no commits de una sola persona)
+- [x] Código, scripts y configuraciones funcionando y documentados
+- [x] Capturas de pantalla o evidencias incluidas
+- [x] Póster en formato editable + PDF
+- [x] Documento en PDF
+- [x] No hay archivos temporales, binarios o contraseñas hardcodeadas
 
 ## 👥 Presentación grupal
 
@@ -67,4 +67,4 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 
 ---
 
-*Última actualización: [fecha del cuatrimestre]*
+*Última actualización: 6/11/2026*
