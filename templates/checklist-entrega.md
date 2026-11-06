@@ -40,12 +40,12 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 ## 📂 Repositorio
 
 - [ ] README.md completo: qué es el proyecto, cómo reproducirlo, tecnologías usadas
-- [ ] Commits de todos los integrantes (no commits de una sola persona)
-- [ ] Código, scripts y configuraciones funcionando y documentados
-- [ ] Capturas de pantalla o evidencias incluidas
-- [ ] Póster en formato editable + PDF
-- [ ] Documento en PDF
-- [ | No hay archivos temporales, binarios o contraseñas hardcodeadas
+- [x] Commits de todos los integrantes (no commits de una sola persona)
+- [x] Código, scripts y configuraciones funcionando y documentados
+- [x] Capturas de pantalla o evidencias incluidas
+- [x] Póster en formato editable + PDF
+- [x] Documento en PDF
+- [x] No hay archivos temporales, binarios o contraseñas hardcodeadas
 
 ## 👥 Presentación grupal
 
@@ -67,4 +67,4 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 
 ---
 
-*Última actualización: [fecha del cuatrimestre]*
+*Última actualización: 6/11/2026*
