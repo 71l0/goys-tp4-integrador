@@ -1,4 +1,4 @@
-{
+﻿{
   "title": "Lab Mesh VPN — Underlay BGP y Overlay",
   "uid": "lab-mesh",
   "schemaVersion": 39,
@@ -241,7 +241,7 @@
     },
     {
       "id": 7,
-      "title": "Headscale — goroutines y memoria",
+      "title": "Headscale — goroutines",
       "type": "timeseries",
       "datasource": {
         "type": "prometheus",
@@ -257,6 +257,28 @@
         {
           "expr": "go_goroutines{job=\"headscale\"}",
           "legendFormat": "goroutines",
+          "refId": "A"
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "title": "Headscale — memoria asignada",
+      "type": "timeseries",
+      "datasource": {
+        "type": "prometheus",
+        "uid": "prometheus"
+      },
+      "gridPos": {
+        "x": 0,
+        "y": 26,
+        "w": 24,
+        "h": 5
+      },
+      "targets": [
+        {
+          "expr": "go_memstats_alloc_bytes{job=\\\"headscale\\\"}",
+          "legendFormat": "memoria asignada (bytes)",
           "refId": "A"
         }
       ]

@@ -52,7 +52,7 @@ Usar este checklist antes de la **Clase 13** (ensayo) y volver a verificarlo ant
 - [ ] Roles definidos: quién explica el póster, quién maneja la demo, quién responde preguntas técnicas
 - [ ] Presentación ensayada al menos 1 vez con cronómetro
 - [ ] Saben explicar el proyecto en 30 segundos (elevator pitch)
-- [ | Preparados para preguntas del docente: decisiones técnicas, alternativas, qué harían diferente
+- [ ] Preparados para preguntas del docente: decisiones técnicas, alternativas, qué harían diferente
 - [ ] Tienen una respuesta para "¿cómo se vincula esto con seguridad?"
 
 ## 🎒 Logística — día de la feria

@@ -56,3 +56,26 @@
           Cliente: {{ item.item }}
           {{ item.stdout }}
       loop: "{{ tailscale_results.results }}"
+
+    - name: Assert 4 nodos registrados en Headscale
+      ansible.builtin.assert:
+        that:
+          - "'host-a1' in headscale_nodes.stdout"
+          - "'host-a2' in headscale_nodes.stdout"
+          - "'servidor-web' in headscale_nodes.stdout"
+          - "'servidor-db' in headscale_nodes.stdout"
+        fail_msg: >-
+          Faltan nodos registrados en Headscale.
+          Se esperan: host-a1, host-a2, servidor-web, servidor-db.
+        success_msg: >-
+          OK: 4 nodos registrados en Headscale.
+
+    - name: Assert clientes Tailscale activos
+      ansible.builtin.assert:
+        that:
+          - "'Running' in item.stdout"
+        fail_msg: >-
+          Cliente Tailscale no activo en {{ item.item }}.
+        success_msg: >-
+          OK: Tailscale Running en {{ item.item }}.
+      loop: "{{ tailscale_results.results }}"

@@ -7,9 +7,9 @@
 
 ## 📋 Resumen y Criterios de Selección
 
-| # | Propuesta | Stack Principal | Complejidad | Consumo RAM |
-|---|---|---|:---:|:---:|
-| **1** | **Mesh VPN Multi-Tenant con Headscale & FRR** | Docker Compose + FRRouting + Headscale + WireGuard/Tailscale | Media | ~2 GB |
+| # | Propuesta | Stack Principal | Consumo RAM |
+|---|---|---|:---:|
+| **1** | **Mesh VPN Multi-Tenant con Headscale & FRR** | Docker Compose + FRRouting + Headscale + WireGuard/Tailscale | ~2 GB |
 
 > Se evaluaron otras alternativas (EVPN-VXLAN con OSPF, mTLS con Linkerd/K3s). Se eligió esta porque entrega las tres áreas de la materia con un único `docker compose up` y sin dependencia de Internet, que es el requisito de la estación de la Feria de Redes.
 
@@ -280,10 +280,7 @@ Estos ítems **no están implementados** en el laboratorio actual; se documentan
 
 | # | Ítem | Área | Descripción |
 |---|---|---|---|
-| 1 | **Aprovisionamiento con Ansible** | Operación | Playbooks para crear tenants, registrar usuarios, entregar las *auth keys* a los agentes y aplicar la `acl.hujson` de forma declarativa e idempotente, en lugar de los pasos manuales de Headscale CLI. |
-| 3 | **OSPF como alternativa a BGP** | Redes | Agregar OSPF como segundo protocolo de ruta para comparar convergence times y comportamiento de failover frente a eBGP. |
-| 4 | **Pruebas automatizadas de aceptación** | Operación / Redes | Script que valide el failover (caída y restauración de `net-ab`) y el aislamiento multi-tenant de forma automática en cada entrega. |
-| 5 | **Documento final y póster A1** | General | Documento PDF con la memoria del TP y póster tamaño A1 para la presentación de la Feria de Redes. |
+| 1 | **Documento final y póster A1** | General | Documento PDF con la memoria del TP y póster tamaño A1 para la presentación de la Feria de Redes. |
 
 ---
 
@@ -318,32 +315,4 @@ docker exec host-a1 ping -c2 host-a2
 - El **failover es real**, no simulado: depende de las sesiones eBGP entre los tres AS con timers cortos (`timers 3 9`).
 - La **segmentación multi-tenant** no depende de la topología física sino de la política centralizada en `acl.hujson`.
 - El sidecar `hs-routes` es una pieza obligatoria del diseño: sin él, Headscale no tiene rutas hacia las sucursales y los agentes no pueden registrarse.
-- Los ítems de §6 (Ansible, OSPF, pruebas automatizadas, PDF/póster) quedan pendientes y **no deben presentarse como implementados**.
-
----
-
-INCONSISTENCIA EN CAPTURAS <--- REVISARLAS
-
-Me parece bien, y no es innecesario — resuelve un problema real del diseño actual: con tenant-a = sucursal A y tenant-b = sucursal B, el aislamiento inter-tenant y el cruce de sucursales (failover) nunca se prueban juntos, porque el único tráfico permitido por ACL ya era intra-sucursal. Tu reasignación hace que:
-
-- `host-a1 ↔ servidor-web` (mismo tenant, cruza `net-ab`) valide overlay + failover real.
-- `host-a1 ↔ host-a2` (misma subred, distinto tenant) valide que el aislamiento es por ACL y no por topología.
-
-Es justo el tipo de prueba que un jurado va a pedir ("¿cómo sabés que no es la red la que aísla?"), así que vale la pena.
-
-Dos detalles a confirmar, no a descartar:
-
-1. **Sintaxis del CLI**: en headscale v0.29.5 el subcomando es `nodes move` con `-i/--identifier` (ID numérico del nodo) y `-u/--user` — pero convendría correr `docker exec headscale headscale nodes move --help` antes de tirar los comandos a ciegas, porque en algunas versiones `-u` espera el **nombre** del user, no el ID (al revés que `preauthkeys create`, que sí pedía ID numérico). Vale la pena no asumir.
-2. **Consistencia con la documentación**: `propuesta-tp4.md` tiene la tabla de nodos (§2.1), el diagrama ASCII y la tabla de ACLs (§2.7) escritos con la asignación vieja (host-a1/host-a2 = tenant-a, servidor-web/servidor-db = tenant-b). Si aplicás el cambio, esos tres lugares quedan desactualizados y hay que tocarlos para que el documento siga reflejando "la implementación presente en demo/", como dice el propio encabezado.
-
-Sobre tu nota de `no matching peer`: correcto, es el comportamiento esperado y deseable de Headscale (ACL se aplica en el *map response*, ni siquiera anuncia el peer) — es mejor evidencia de aislamiento que un ping bloqueado a nivel de paquete.
-
-```
-
-✅ **Paso 1-3 completamente funcionales**: BGP Established (primario `net-ab` + backup vía `router-c`), Headscale estable, 4 agentes unidos al mesh.
-✅ **Reasignación de tenants aplicada**: `host-a2`→tenant-b (`100.64.0.5`), `servidor-web`→tenant-a (`100.64.0.6`), vía logout + delete + rejoin (no existe `nodes move` en esta versión de headscale, solo `delete`/`rename`/`tag`).
-✅ **Aislamiento por ACL confirmado**: `host-a1↔host-a2` da `no matching peer` (bloqueo a nivel de control plane, no de paquete).
-✅ **Cruce de sucursal confirmado**: `host-a1↔servidor-web` responde con ruta directa.
-✅ **Failover real probado**: se cortó `net-ab`, la sesión BGP primaria cayó a `Active`, la ruta a `10.20.2.0/24` reconvergió vía `router-c`, el overlay perdió solo 1 paquete, y se restauró el enlace primario sin problemas.
-
-`propuesta-tp4.md` quedó actualizado (tabla de nodos §2.1, diagramas §2 y §2.8, ACL §2.7, pasos §4 y §7) para reflejar la asignación cruzada real.
+- Ansible, underlay FRR, overlay Headscale y monitoreo Prometheus/Grafana ya están implementados en `demo/` y `ansible/playbooks/`.
