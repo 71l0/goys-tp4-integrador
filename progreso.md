@@ -50,9 +50,7 @@
 
 ## 🚧 Pendientes / decisiones
 
-- [ ] Generar documento final en PDF desde `documento/tp4.md`
-- [ ] Agregar póster A1 (editable + PDF) en `poster/`
-- [ ] Revisar IPs Tailscale hardcodeadas en `ansible/playbooks/04-pruebas-conectividad.yml` si cambia el orden de join
+- [ ]
 
 ## 📝 Notas
 

@@ -14,12 +14,15 @@
 - Memoria RAM disponible: mínimo 2 GB.
 
 ### 1.2. Despliegue de los servicios
-Desde la raíz del proyecto o desde el directorio `demo/`:
+Desde la raíz del proyecto:
 
 ```bash
-cd demo
-docker compose up -d
+docker compose -f demo/docker-compose.yml pull
+docker compose -f demo/docker-compose.yml up -d --pull never
 ```
+Ejecutar `pull` mientras haya conexión para precargar las imágenes fijadas en
+`demo/docker-compose.yml`. En la demo offline, `up --pull never` evita intentar
+descargas; si falta una imagen local, Compose lo informa en vez de conectarse.
 
 ### 1.3. Validación automática con Ansible
 Desde la carpeta `ansible/`:
@@ -108,7 +111,7 @@ La política de control de acceso se define en `demo/headscale/acl.hujson`.
 - `host-a1` hacia `servidor-web` (ambos pertenecen a `tenant-a`, cruzando sucursales):
   ```bash
   docker exec host-a1 tailscale ping servidor-web
-  docker exec host-a1 ping -c 3 100.64.0.6
+  docker exec host-a1 ping -c 3 "$(docker exec servidor-web tailscale ip -4)"
   ```
   *Resultado:* Tráfico cifrado permitido y exitoso.
 

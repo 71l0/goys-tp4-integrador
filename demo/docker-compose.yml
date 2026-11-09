@@ -26,7 +26,7 @@ volumes:
   grafana-data:
 
 x-router: &router
-  image: frrouting/frr:latest
+  image: frrouting/frr:v8.4.1
   cap_add: [NET_ADMIN, SYS_ADMIN]
   sysctls:
     - net.ipv4.ip_forward=1
@@ -35,7 +35,7 @@ x-router: &router
   restart: unless-stopped
 
 x-host: &host
-  image: tailscale/tailscale:latest   # Fijar una versión compatible antes de la demo.
+  image: tailscale/tailscale:v1.104.4
   cap_add: [NET_ADMIN]
   devices: ["/dev/net/tun:/dev/net/tun"]
   environment: ["TS_NO_LOGS_NO_SUPPORT=true"]
@@ -71,7 +71,7 @@ services:
       net-transit: {ipv4_address: 10.100.0.3}
 
   headscale:
-    image: headscale/headscale:latest
+    image: headscale/headscale:v0.28.0
     container_name: headscale
     volumes: ["./headscale:/etc/headscale"]
     command: serve
@@ -81,7 +81,7 @@ services:
 
   # Headscale no trae shell: este sidecar comparte su netns y le agrega las rutas hacia los sitios.
   hs-routes:
-    image: tailscale/tailscale:latest
+    image: tailscale/tailscale:v1.104.4
     container_name: hs-routes
     network_mode: "service:headscale"
     depends_on: [headscale]
@@ -120,7 +120,7 @@ services:
   # ---------- Monitoreo y observabilidad ----------
   # Cada exporter lee los sockets de su router (volumen compartido) y expone métricas BGP en :9342.
   frr-exporter-a: &frr-exporter
-    image: tynany/frr_exporter:latest
+    image: tynany/frr_exporter:v1.12.0
     container_name: frr-exporter-a
     user: root
     volumes: ["frr-run-a:/var/run/frr:ro"]
@@ -144,7 +144,7 @@ services:
     networks: {net-transit: {ipv4_address: 10.100.0.33}}
 
   prometheus:
-    image: prom/prometheus:latest
+    image: prom/prometheus:v3.8.1
     container_name: prometheus
     volumes:
       - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
@@ -155,7 +155,7 @@ services:
     restart: unless-stopped
 
   grafana:
-    image: grafana/grafana:latest
+    image: grafana/grafana:13.2.5
     container_name: grafana
     environment:
       GF_SECURITY_ADMIN_USER: admin

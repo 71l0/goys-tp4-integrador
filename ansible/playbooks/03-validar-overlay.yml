@@ -45,6 +45,7 @@
           - "{{ item }}"
           - tailscale
           - status
+          - --json
         chdir: "{{ repo_root }}"
       loop: "{{ overlay_nodes }}"
       register: tailscale_results
@@ -52,9 +53,11 @@
 
     - name: Mostrar el estado de cada cliente
       ansible.builtin.debug:
-        msg: |
-          Cliente: {{ item.item }}
-          {{ item.stdout }}
+        msg:
+          cliente: "{{ item.item }}"
+          estado: "{{ (item.stdout | from_json).BackendState }}"
+          ips: "{{ (item.stdout | from_json).TailscaleIPs }}"
+          salud: "{{ (item.stdout | from_json).Health | default([]) }}"
       loop: "{{ tailscale_results.results }}"
 
     - name: Assert 4 nodos registrados en Headscale
@@ -73,7 +76,8 @@
     - name: Assert clientes Tailscale activos
       ansible.builtin.assert:
         that:
-          - "'Running' in item.stdout"
+          - (item.stdout | from_json).BackendState == 'Running'
+          - (item.stdout | from_json).Self.HostName == item.item
         fail_msg: >-
           Cliente Tailscale no activo en {{ item.item }}.
         success_msg: >-
