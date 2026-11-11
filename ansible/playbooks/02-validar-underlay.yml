@@ -12,7 +12,7 @@
     repo_root: "{{ playbook_dir }}/../.."
 
   tasks:
-    - name: Consultar el resumen BGP de cada router
+    - name: Consultar el resumen BGP estructurado de cada router
       ansible.builtin.command:
         argv:
           - docker
@@ -24,7 +24,7 @@
           - "{{ item }}"
           - vtysh
           - -c
-          - show bgp summary
+          - show bgp summary json
         chdir: "{{ repo_root }}"
       loop: "{{ routers }}"
       register: bgp_results
@@ -65,11 +65,15 @@
     - name: Assert sesiones BGP establecidas
       ansible.builtin.assert:
         that:
-          - "'Established' in item.stdout"
-          - "'Active' not in item.stdout"
+          - (item.stdout | from_json).ipv4Unicast.peers | length > 0
+          - >-
+            (item.stdout | from_json).ipv4Unicast.peers.values()
+            | selectattr('state', 'equalto', 'Established')
+            | list | length ==
+            (item.stdout | from_json).ipv4Unicast.peers | length
         fail_msg: >-
-          BGP no Established en {{ item.item }}.
-          Revisar 'show bgp summary'.
+          Hay vecinos BGP no establecidos en {{ item.item }}.
+          Revisar 'show bgp summary json'.
         success_msg: >-
           OK: BGP Established en {{ item.item }}.
       loop: "{{ bgp_results.results }}"
@@ -78,20 +82,20 @@
       ansible.builtin.assert:
         that:
           - "'10.20.2.0/24' in item.stdout"
-        when: item.item == 'router-a'
         fail_msg: >-
           router-a no tiene ruta a 10.20.2.0/24 (sucursal B).
         success_msg: >-
           OK: router-a ruta hacia 10.20.2.0/24.
+      when: item.item == 'router-a'
       loop: "{{ route_results.results }}"
 
     - name: Assert router-b tiene ruta a 10.10.1.0/24
       ansible.builtin.assert:
         that:
           - "'10.10.1.0/24' in item.stdout"
-        when: item.item == 'router-b'
         fail_msg: >-
           router-b no tiene ruta a 10.10.1.0/24 (sucursal A).
         success_msg: >-
           OK: router-b ruta hacia 10.10.1.0/24.
+      when: item.item == 'router-b'
       loop: "{{ route_results.results }}"

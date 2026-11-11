@@ -1,8 +1,4 @@
 ---
-# NOTA: Las IPs Tailscale .1 a .4 se asumen asignadas en orden secuencial
-# tras una limpieza total de Headscale (db.sqlite borrada y contenedores
-# recreados con `docker compose down -v`). Si el orden de join de los nodos
-# cambia, actualizar estas IPs antes de ejecutar el playbook.
 - name: Validar conectividad e aislamiento entre tenants
   hosts: controlador
   gather_facts: false
@@ -20,6 +16,42 @@
           - sleep
           - "5"
       changed_when: false
+
+    - name: Consultar las IPs Tailscale actuales de cada nodo overlay
+      ansible.builtin.command:
+        argv:
+          - docker
+          - compose
+          - -f
+          - "{{ compose_file }}"
+          - exec
+          - -T
+          - "{{ item }}"
+          - tailscale
+          - ip
+          - -4
+        chdir: "{{ repo_root }}"
+      loop: "{{ overlay_nodes }}"
+      register: tailscale_ips
+      changed_when: false
+
+    - name: Validar las IPs Tailscale consultadas
+      ansible.builtin.assert:
+        that:
+          - >-
+            item.stdout | trim is
+            match('^100\\.(6[4-9]|[7-9][0-9]|1[01][0-9]|12[0-7])\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$')
+        fail_msg: >-
+          No se obtuvo una IP IPv4 válida de Tailscale para {{ item.item }}:
+          {{ item.stdout | default('') }}
+      loop: "{{ tailscale_ips.results }}"
+
+    - name: Indexar las IPs Tailscale por nombre de nodo
+      ansible.builtin.set_fact:
+        overlay_ips: >-
+          {{ overlay_ips | default({}) |
+             combine({item.item: item.stdout | trim}) }}
+      loop: "{{ tailscale_ips.results }}"
 
     - name: Diagnóstico - mostrar estado Tailscale de cada nodo overlay
       ansible.builtin.command:
@@ -55,7 +87,7 @@
           - tailscale
           - ping
           - --timeout=10s
-          - 100.64.0.2
+          - "{{ overlay_ips['servidor-web'] }}"
         chdir: "{{ repo_root }}"
       register: ping_tenant_a
       changed_when: false
@@ -85,7 +117,7 @@
           - tailscale
           - ping
           - --timeout=10s
-          - 100.64.0.4
+          - "{{ overlay_ips['servidor-db'] }}"
         chdir: "{{ repo_root }}"
       register: ping_tenant_b
       changed_when: false
@@ -123,7 +155,7 @@
           - tailscale
           - ping
           - --timeout=5s
-          - 100.64.0.3
+          - "{{ overlay_ips['host-a2'] }}"
         chdir: "{{ repo_root }}"
       register: cross_a_to_b
       changed_when: false
@@ -156,7 +188,7 @@
           - tailscale
           - ping
           - --timeout=5s
-          - 100.64.0.1
+          - "{{ overlay_ips['servidor-web'] }}"
         chdir: "{{ repo_root }}"
       register: cross_b_to_a
       changed_when: false
