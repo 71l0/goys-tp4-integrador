@@ -32,7 +32,7 @@
           - vtysh
           - -c
           - show running-config
-      chdir: "{{ repo_root }}"
+        chdir: "{{ repo_root }}"
       loop: "{{ routers }}"
       register: frr_configs
       changed_when: false

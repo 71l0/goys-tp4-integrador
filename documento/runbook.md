@@ -64,6 +64,26 @@ ansible-playbook -i inventory/hosts.yml playbooks/05-backup-configs.yml
 ```
 Los archivos se guardarán versionados en `backups/frr/router-{a,b,c}-YYYY-MM-DD.cfg`.
 
+**Atajo con un solo comando (muestra un resumen por router):**
+
+Windows (PowerShell), desde cualquier carpeta del proyecto clonado:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File .\scripts\demo-respaldo.ps1
+```
+
+Linux, macOS o WSL:
+
+```bash
+./scripts/demo-respaldo.sh
+```
+
+El script comprueba Docker, los routers y Ansible, ejecuta el playbook anterior y muestra, por cada router, el archivo generado, el AS BGP, la cantidad de vecinos y si el respaldo es válido. Con `-Detalle` (PowerShell) o `--detalle` (bash) agrega la salida completa de Ansible.
+
+- Requisitos: Docker con el laboratorio levantado (alcanza con los tres routers; no hace falta registrar los nodos en Headscale) y Ansible. En Windows, Ansible corre dentro de WSL.
+- Se puede ejecutar varias veces: si la configuración no cambió, no se generan cambios. Con otra fecha se crea un archivo nuevo y los anteriores se conservan.
+- Los respaldos quedan en `backups/frr/` sin commitear.
+
 ---
 
 ## 3. Demostración de Resiliencia: Simulación de Failover
@@ -85,7 +105,7 @@ docker network disconnect -f net-ab router-a
    ```bash
    docker exec router-a vtysh -c "show ip route 10.20.2.0/24"
    ```
-   *Resultado esperado:* Next-hop conmutado a `10.100.0.3` (`router-c`).
+   *Resultado esperado:* La ruta sigue activa, ahora aprendida vía `router-c` (AS-path `65000 65002`). El next-hop pasa de `10.100.1.2` (`net-ab`) a `10.100.0.2` (`net-transit`), porque `router-a` y `router-b` comparten esa red y BGP conserva el next-hop original.
 3. **Verificar tráfico del overlay en vivo:**
    ```bash
    docker exec host-a1 tailscale ping servidor-web
