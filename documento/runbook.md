@@ -85,7 +85,7 @@ docker network disconnect -f net-ab router-a
    ```bash
    docker exec router-a vtysh -c "show ip route 10.20.2.0/24"
    ```
-   *Resultado esperado:* Next-hop conmutado a `10.100.0.3` (`router-c`).
+   *Resultado esperado:* La ruta sigue activa, ahora aprendida vía `router-c` (AS-path `65000 65002`). El next-hop pasa de `10.100.1.2` (`net-ab`) a `10.100.0.2` (`net-transit`), porque `router-a` y `router-b` comparten esa red y BGP conserva el next-hop original.
 3. **Verificar tráfico del overlay en vivo:**
    ```bash
    docker exec host-a1 tailscale ping servidor-web
